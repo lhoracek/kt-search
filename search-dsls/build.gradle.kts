@@ -28,8 +28,7 @@ kotlin {
     macosArm64()
     iosArm64()
     iosX64()
-    // Blocked on json-dsl and kotlinx-serialization-extensions support
-    // iosSimulatorArm64()
+    iosSimulatorArm64()
     wasmJs {
         browser()
         nodejs()

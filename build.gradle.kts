@@ -1,5 +1,7 @@
+import org.gradle.internal.impldep.org.jsoup.safety.Safelist.basic
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import java.util.Properties
 
 plugins {
     kotlin("multiplatform") apply false
@@ -10,10 +12,24 @@ println("project: $path")
 println("version: $version")
 println("group: $group")
 
+
+// function to load propertie file local.properties
+fun loadAccessToken(): String {
+    val properties = Properties().apply {
+        rootProject.file("local.properties").reader().use(::load)
+    }
+    return properties["azdoArtifactsAccessToken"] as String
+}
+
 allprojects {
     repositories {
         mavenCentral()
-        maven("https://maven.tryformation.com/releases") {
+        maven(url = "https://pkgs.dev.azure.com/drmaxglobal/mobile-team/_packaging/gmad/maven/v1") {
+            name = "gmad"
+            credentials {
+                username = "drmaxglobal"
+                password = System.getenv("SYSTEM_ACCESSTOKEN") ?: loadAccessToken()
+            }
             content {
                 includeGroup("com.jillesvangurp")
             }
@@ -98,10 +114,12 @@ subprojects {
         configure<PublishingExtension> {
             repositories {
                 maven {
-                    // GOOGLE_APPLICATION_CREDENTIALS env var must be set for this to work
-                    // public repository is at https://maven.tryformation.com/releases
-                    url = uri("gcs://mvn-public-tryformation/releases")
-                    name = "FormationPublic"
+                    url = uri("https://pkgs.dev.azure.com/drmaxglobal/mobile-team/_packaging/gmad/maven/v1")
+                    name = "drmaxglobal"
+                    credentials {
+                        username = "drmaxglobal"
+                        password = System.getenv("SYSTEM_ACCESSTOKEN") ?: loadAccessToken()
+                    }
                 }
             }
         }
